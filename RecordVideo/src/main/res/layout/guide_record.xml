@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:id="@+id/parent"
+    android:background="@drawable/back_guide"
+    android:orientation="horizontal">
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/pat_guide"
+        android:layout_marginLeft="9dp"
+        android:layout_marginBottom="7dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#2d2c28"
+        android:layout_marginBottom="6dp"
+        android:layout_marginLeft="6dp"
+        android:text="再次点击\n结束录制"/>
+    <ImageView
+        android:src="@drawable/delete_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="6dp"
+        android:layout_marginLeft="9dp"
+        android:layout_marginBottom="7dp"/>
+</LinearLayout>

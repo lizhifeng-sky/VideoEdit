@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    tools:context="lzf.video.edit.MainActivity">
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="wrap_content"
+        android:layout_margin="2dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="300dp"
+        >
+        <VideoView
+            android:id="@+id/videoView"
+            android:layout_width="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_height="300dp" />
+        <ImageView
+            android:id="@+id/selectVideo"
+            android:src="@drawable/add_video"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="9dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+        <ImageView
+            android:id="@+id/play"
+            android:src="@drawable/play"
+            android:layout_centerInParent="true"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/next"
+        android:text="下一步"
+        android:layout_below="@id/top"
+        android:textSize="16sp"
+        android:padding="6dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <android.support.v7.widget.RecyclerView
+        android:layout_below="@id/next"
+        android:layout_width="wrap_content"
+        android:id="@+id/recycler_bitmap"
+        android:layout_height="wrap_content"/>
+</RelativeLayout>
