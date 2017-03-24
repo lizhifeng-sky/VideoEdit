@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="lzf.video.edit">
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -31,6 +33,7 @@
             android:name=".SelectLocalVideoActivity"
             android:screenOrientation="portrait"
             android:theme="@style/MaterialCamera.CaptureActivity" />
+        <activity android:name=".AddAudioActivity"></activity>
     </application>
 
 </manifest>

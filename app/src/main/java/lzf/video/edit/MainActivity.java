@@ -23,7 +23,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -41,8 +43,8 @@ import lzf.video.edit.adapter.CurrentVideoBitmapAdapter;
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
         MediaPlayer.OnCompletionListener,
-        Runnable
-{
+        Runnable,
+        MediaPlayer.OnPreparedListener {
     private VideoView videoView;
     private ImageView play;
     private ImageView select;
@@ -56,6 +58,16 @@ public class MainActivity extends AppCompatActivity implements
     private List<String> videoBitmapPath;
     private RecyclerView recycler_bitmap;
     private CurrentVideoBitmapAdapter adapter;
+    private static final String VIDEO_FROM_LOCAL = "local";
+    private static final String VIDEO_FROM_RECORD = "record";
+    private String videoFrom = null;//拍摄 本地
+    private EditText start_time;
+    private EditText end_time;
+    private LinearLayout bottom;
+    private LinearLayout finish_decode;
+    private TextView cancel;
+    private TextView done;
+    private TextView start;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements
         initListener();
         videoBitmapPath = new ArrayList<>();
         adapter = new CurrentVideoBitmapAdapter(this, videoBitmapPath);
+        recycler_bitmap.addItemDecoration(new MyItemDecoration());
         recycler_bitmap.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recycler_bitmap.setAdapter(adapter);
     }
@@ -73,6 +86,11 @@ public class MainActivity extends AppCompatActivity implements
         play.setOnClickListener(this);
         select.setOnClickListener(this);
         videoView.setOnCompletionListener(this);
+        videoView.setOnPreparedListener(this);
+
+        start.setOnClickListener(this);
+        cancel.setOnClickListener(this);
+        done.setOnClickListener(this);
     }
 
     private void initView() {
@@ -80,6 +98,17 @@ public class MainActivity extends AppCompatActivity implements
         play = (ImageView) findViewById(R.id.play);
         select = (ImageView) findViewById(R.id.selectVideo);
         recycler_bitmap = (RecyclerView) findViewById(R.id.recycler_bitmap);
+        start_time = (EditText) findViewById(R.id.start_time);
+        end_time = (EditText) findViewById(R.id.end_time);
+        bottom = (LinearLayout) findViewById(R.id.bottom);
+        cancel = (TextView) findViewById(R.id.cancel);
+        done = (TextView) findViewById(R.id.done);
+        finish_decode = (LinearLayout) findViewById(R.id.finish);
+        start = (TextView) findViewById(R.id.start);
+
+        bottom.setVisibility(View.GONE);
+        finish_decode.setVisibility(View.GONE);
+
         play.setVisibility(View.GONE);
         videoView.setMediaController(null);
     }
@@ -87,19 +116,64 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            //播放视频
             case R.id.play:
                 if (videoView != null && videoPath != null) {
                     videoView.setVideoPath(videoPath);
                     videoView.start();
-                    getVideoBitmap = new Thread(MainActivity.this);
-                    getVideoBitmap.start();
                 } else {
                     Toast.makeText(MainActivity.this, "打开视频失败", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            //选择视频
             case R.id.selectVideo:
                 selectVideo();
                 break;
+            //开始剪切视频
+            case R.id.start:
+                startDecodeVideo();
+                break;
+            //取消
+            case R.id.cancel:
+                finish_decode.setVisibility(View.GONE);
+                videoView.setVideoPath(videoPath);
+                videoView.start();
+                break;
+            //完成
+            case R.id.done:
+                Intent intent=new Intent(MainActivity.this,AddAudioActivity.class);
+                //Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4"
+                intent.putExtra("video_path",Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4");
+                startActivity(intent);
+                break;
+        }
+    }
+
+    private void startDecodeVideo() {
+        //起始时间  截取时长
+        if (start_time.getText() != null) {
+            if (Integer.parseInt(start_time.getText().toString()) * 1000 > videoView.getDuration()) {
+                Toast.makeText(MainActivity.this, "开始时间错误", Toast.LENGTH_SHORT).show();
+            } else {
+                if (end_time.getText() != null) {
+                    if (Integer.parseInt(start_time.getText().toString()) * 1000 + Integer.parseInt(end_time.getText().toString()) * 1000 > videoView.getDuration()) {
+                        Toast.makeText(MainActivity.this, "错误的截取时长", Toast.LENGTH_SHORT).show();
+                    } else {
+                        boolean finish = new VideoDecoder().decodeVideo(videoPath, Integer.parseInt(start_time.getText().toString()) * 1000 * 1000, Integer.parseInt(end_time.getText().toString()) * 1000 * 1000);
+                        if (finish) {
+                            videoView.setVideoPath(Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4");
+                            videoView.start();
+                            finish_decode.setVisibility(View.VISIBLE);
+                        } else {
+                            Log.e("lzf_decoder_video", "视频剪切失败");
+                        }
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "请输入截取时长", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "请输入开始时间", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -149,8 +223,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onPrepared(MediaPlayer mp) {
+        getVideoBitmap = new Thread(MainActivity.this);
+        getVideoBitmap.start();
+    }
+
+    @Override
     public void onCompletion(MediaPlayer mp) {
         play.setVisibility(View.VISIBLE);
+        getVideoBitmap.interrupt();
     }
 
     public void startRecord(File file) {
@@ -203,8 +284,7 @@ public class MainActivity extends AppCompatActivity implements
 //                        requestVideoWH(480,640);
                         videoView.setVideoURI(Uri.parse(filePath));
                         videoView.start();
-                        getVideoBitmap = new Thread(MainActivity.this);
-                        getVideoBitmap.start();
+                        videoFrom = VIDEO_FROM_RECORD;
                     } else {
                         Log.e("lzf_activity_result", "返回失败");
                     }
@@ -218,8 +298,7 @@ public class MainActivity extends AppCompatActivity implements
 //                        requestVideoWH(480,640);
                         videoView.setVideoURI(Uri.parse(filePath_local));
                         videoView.start();
-                        getVideoBitmap = new Thread(MainActivity.this);
-                        getVideoBitmap.start();
+                        videoFrom = VIDEO_FROM_LOCAL;
                     } else {
                         Log.e("lzf_activity_result", "选择本地视频返回失败");
                     }
@@ -235,15 +314,21 @@ public class MainActivity extends AppCompatActivity implements
 //        String [] array=new String[]{};
 
         MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-        Log.i(TAG, Environment.getExternalStorageDirectory().getPath() + "/video.mp4");
-        metadataRetriever.setDataSource(Environment.getExternalStorageDirectory() + "/video.mp4");
-
-        for (int i = 1000; i <= videoView.getDuration() * 1000; i += 500 * 1000) {
+        Log.i(TAG, Environment.getExternalStorageDirectory().getPath() + "/video.mp4" + "     " + videoPath);
+        Log.i(TAG, Environment.getExternalStorageDirectory() + "/video.mp4" + "     " + videoPath.substring(7, videoPath.length()));
+//        metadataRetriever.setDataSource(videoPath);
+        if (videoFrom.equals(VIDEO_FROM_RECORD)) {
+            metadataRetriever.setDataSource(videoPath.substring(7, videoPath.length()));
+        } else if (videoFrom.equals(VIDEO_FROM_LOCAL)) {
+            metadataRetriever.setDataSource(videoPath);
+        }
+        Log.e("lzf_duration", videoView.getDuration() + "   ");
+        for (int i = 500 * 1000; i <= videoView.getDuration() * 1000; i += 1000 * 1000) {
             Bitmap bitmap = metadataRetriever.
                     getFrameAtTime(videoView.getCurrentPosition() * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
             Log.i(TAG, "bitmap---i: " + i / 1000);
             Log.e(TAG, videoView.getCurrentPosition() + "  ");
-            String path = Environment.getExternalStorageDirectory() + "/bitmap/" + i + ".png";
+            String path = Environment.getExternalStorageDirectory() + "/bitmap_" + i + ".png";
             FileOutputStream fileOutputStream = null;
             try {
                 fileOutputStream = new FileOutputStream(path);
@@ -252,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements
                 list.add(path);
 //                array[i]=path;
             } catch (Exception e) {
-                Log.i(TAG, "Error: " + i / 1000+"   "+e.getMessage());
+                Log.i(TAG, "Error: " + i / 1000 + "   " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 if (fileOutputStream != null) {
@@ -270,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements
         handler.obtainMessage();
         //将msg发送到目标对象，所谓的目标对象，就是生成该msg对象的handler对象
         Bundle b = new Bundle();
-        b.putStringArrayList("array",list);
+        b.putStringArrayList("array", list);
         msg.setData(b);
 //        msg.sendToTarget();
         handler.sendMessage(msg);
@@ -284,18 +369,21 @@ public class MainActivity extends AppCompatActivity implements
         public void handleMessage(Message msg) {
             // TODO 接收消息并且去更新UI线程上的控件内容
             if (msg.what == 0) {
-                Bundle b=msg.getData();
+                Bundle b = msg.getData();
                 Log.e("lzf_video_bitmap_path", videoBitmapPath.size() + "   ");
-                if (b.getStringArrayList("array")!=null) {
-                    ArrayList<String> list=b.getStringArrayList("array");
+                if (b.getStringArrayList("array") != null) {
+                    ArrayList<String> list = b.getStringArrayList("array");
                     if (list != null) {
                         videoBitmapPath.addAll(list);
                     }
                 }
                 Log.e("lzf_video_bitmap_path", videoBitmapPath.size() + "   ");
                 adapter.notifyDataSetChanged();
+                bottom.setVisibility(View.VISIBLE);
             }
             super.handleMessage(msg);
         }
     };
+
+
 }
