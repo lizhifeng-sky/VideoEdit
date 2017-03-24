@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lzf.video.edit.adapter.CurrentVideoBitmapAdapter;
+import lzf.video.edit.decoder.VideoDecoder;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             //完成
             case R.id.done:
-                Intent intent=new Intent(MainActivity.this,AddAudioActivity.class);
+                Intent intent=new Intent(MainActivity.this,ChangeBackgroundAudioActivity.class);
                 //Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4"
                 intent.putExtra("video_path",Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4");
                 startActivity(intent);

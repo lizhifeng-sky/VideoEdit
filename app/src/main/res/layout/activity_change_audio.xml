@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ChangeBackgroundAudioActivity">
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="2dp">
+
+        <VideoView
+            android:id="@+id/videoView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true" />
+
+        <ImageView
+            android:id="@+id/play"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/play" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top"
+        android:layout_margin="9dp"
+        android:padding="9dp"
+        android:text="音乐：" />
+    <LinearLayout
+        android:id="@+id/music"
+        android:orientation="vertical"
+        android:layout_below="@id/title"
+        android:paddingLeft="9dp"
+        android:layout_marginLeft="9dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/music_name"
+            android:text="音乐名称"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/music_time"
+            android:text="当前播放时间"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:id="@+id/edit_music"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/start_time"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:hint="开始时间"
+                android:textSize="12dp"
+                android:inputType="number"
+                android:textColorHint="#ff8f17"
+                android:textColor="#ff8f17"
+                android:layout_height="wrap_content" />
+            <EditText
+                android:id="@+id/end_time"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:hint="结束时间"
+                android:inputType="number"
+                android:textColorHint="#ff8f17"
+                android:textSize="12dp"
+                android:textColor="#ff8f17"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/change_music"
+                android:text="剪切"
+                android:textColor="#ff8f17"
+                android:layout_gravity="center_vertical"
+                android:layout_width="0dp"
+                android:gravity="center"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="6dp"
+        android:background="#fff"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/add_music"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="9dp"
+            android:src="@drawable/music" />
+
+        <ImageView
+            android:id="@+id/play_music"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="9dp"
+            android:src="@drawable/play_music" />
+
+        <TextView
+            android:id="@+id/complex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:textColor="#ff8f17"
+            android:padding="9dp"
+            android:text="合成" />
+    </RelativeLayout>
+</RelativeLayout>

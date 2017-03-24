@@ -1,4 +1,4 @@
-package lzf.video.edit;
+package lzf.video.edit.decoder;
 
 import android.annotation.TargetApi;
 import android.media.MediaCodec;
