@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements
     private TextView cancel;
     private TextView done;
     private TextView start;
+    private TextView video_info;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements
         done = (TextView) findViewById(R.id.done);
         finish_decode = (LinearLayout) findViewById(R.id.finish);
         start = (TextView) findViewById(R.id.start);
+        video_info= (TextView) findViewById(R.id.video_info);
 
         bottom.setVisibility(View.GONE);
         finish_decode.setVisibility(View.GONE);
@@ -224,6 +226,8 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        Log.e("lzf_video_角度",videoView.getRotation()+" ");
+        video_info.setText("视频时长"+videoView.getDuration()+"毫秒");
         getVideoBitmap = new Thread(MainActivity.this);
         getVideoBitmap.start();
     }
@@ -326,29 +330,33 @@ public class MainActivity extends AppCompatActivity implements
         for (int i = 500 * 1000; i <= videoView.getDuration() * 1000; i += 1000 * 1000) {
             Bitmap bitmap = metadataRetriever.
                     getFrameAtTime(videoView.getCurrentPosition() * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
-            Log.i(TAG, "bitmap---i: " + i / 1000);
-            Log.e(TAG, videoView.getCurrentPosition() + "  ");
-            String path = Environment.getExternalStorageDirectory() + "/bitmap_" + i + ".png";
-            FileOutputStream fileOutputStream = null;
-            try {
-                fileOutputStream = new FileOutputStream(path);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
-                Log.i(TAG, "i: " + i / 1000);
-                list.add(path);
-//                array[i]=path;
-            } catch (Exception e) {
-                Log.i(TAG, "Error: " + i / 1000 + "   " + e.getMessage());
-                e.printStackTrace();
-            } finally {
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            if (bitmap!=null) {
+                Log.i(TAG, "bitmap---i: " + i / 1000);
+                Log.e(TAG, videoView.getCurrentPosition() + "  ");
+                String path = Environment.getExternalStorageDirectory() + "/bitmap_" + i + ".png";
+                FileOutputStream fileOutputStream = null;
+                try {
+                    fileOutputStream = new FileOutputStream(path);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
+                    Log.i(TAG, "i: " + i / 1000);
+                    list.add(path);
+    //                array[i]=path;
+                } catch (Exception e) {
+                    Log.i(TAG, "Error: " + i / 1000 + "   " + e.getMessage());
+                    e.printStackTrace();
+                } finally {
+                    if (fileOutputStream != null) {
+                        try {
+                            fileOutputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+                bitmap.recycle();
+            }else {
+                Log.i(TAG, "Error: " + i / 1000 + "获取bitmap失败");
             }
-            bitmap.recycle();
         }
         Message msg = new Message();
         msg.what = 0;

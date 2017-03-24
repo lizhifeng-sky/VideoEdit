@@ -33,7 +33,9 @@
             android:name=".SelectLocalVideoActivity"
             android:screenOrientation="portrait"
             android:theme="@style/MaterialCamera.CaptureActivity" />
-        <activity android:name=".AddAudioActivity"></activity>
+        <activity android:name=".AddAudioActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/MaterialCamera.CaptureActivity"/>
     </application>
 
 </manifest>
