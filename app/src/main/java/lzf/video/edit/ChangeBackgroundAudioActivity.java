@@ -382,8 +382,6 @@ public class ChangeBackgroundAudioActivity extends AppCompatActivity implements 
                     }
                     publishProgress(1.0);
                     return true;
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {

@@ -21,11 +21,13 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements
     private CurrentVideoBitmapAdapter adapter;
     private static final String VIDEO_FROM_LOCAL = "local";
     private static final String VIDEO_FROM_RECORD = "record";
+    private static final String VIDEO_FROM_CUT = "cut";
     private String videoFrom = null;//拍摄 本地
     private EditText start_time;
     private EditText end_time;
@@ -122,7 +125,8 @@ public class MainActivity extends AppCompatActivity implements
             //播放视频
             case R.id.play:
                 if (videoView != null && videoPath != null) {
-                    videoView.setVideoPath(videoPath);
+//                    videoView.setVideoPath(videoPath);
+                    videoView.setVideoURI(Uri.parse(videoPath));
                     videoView.start();
                 } else {
                     Toast.makeText(MainActivity.this, "打开视频失败", Toast.LENGTH_SHORT).show();
@@ -164,8 +168,18 @@ public class MainActivity extends AppCompatActivity implements
                     } else {
                         boolean finish = new VideoDecoder().decodeVideo(videoPath, Integer.parseInt(start_time.getText().toString()) * 1000 * 1000, Integer.parseInt(end_time.getText().toString()) * 1000 * 1000);
                         if (finish) {
-                            videoView.setVideoPath(Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4");
+                            videoPath=Environment.getExternalStorageDirectory().getPath() + "/lzf_decoder_video.mp4";
+
+//                            videoView.setVideoPath(videoPath);
+                            videoView.setVideoURI(Uri.parse(videoPath));
+//                            videoView.setRotation(-90);
                             videoView.start();
+                            //拍摄的视频有个角度  剪切的时候视频角度信息给剪切没了
+                            if(videoFrom.equals(VIDEO_FROM_RECORD)){
+                                resizeVideo();
+                            }
+                            videoFrom=VIDEO_FROM_CUT;
+
                             finish_decode.setVisibility(View.VISIBLE);
                         } else {
                             Log.e("lzf_decoder_video", "视频剪切失败");
@@ -178,6 +192,13 @@ public class MainActivity extends AppCompatActivity implements
         } else {
             Toast.makeText(MainActivity.this, "请输入开始时间", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void resizeVideo() {
+        RelativeLayout.LayoutParams layoutParams=new RelativeLayout.LayoutParams(480,640);
+        layoutParams.addRule(Gravity.CENTER);
+        videoView.setLayoutParams(layoutParams);
+//        videoView.setRotation(-90);
     }
 
     private void selectVideo() {
@@ -227,8 +248,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        videoView.requestLayout();
+        videoView.invalidate();
         Log.e("lzf_video_角度",videoView.getRotation()+" ");
         video_info.setText("视频时长"+videoView.getDuration()+"毫秒");
+        int degree= (int) videoView.getRotation();
+        play.setVisibility(View.GONE);
         getVideoBitmap = new Thread(MainActivity.this);
         getVideoBitmap.start();
     }
@@ -286,10 +311,9 @@ public class MainActivity extends AppCompatActivity implements
                     if (filePath != null) {
                         videoPath = filePath;
                         Log.e("lzf_activity_result", "视频路径" + videoPath);
-//                        requestVideoWH(480,640);
+                        videoFrom = VIDEO_FROM_RECORD;
                         videoView.setVideoURI(Uri.parse(filePath));
                         videoView.start();
-                        videoFrom = VIDEO_FROM_RECORD;
                     } else {
                         Log.e("lzf_activity_result", "返回失败");
                     }
@@ -301,9 +325,10 @@ public class MainActivity extends AppCompatActivity implements
                         videoPath = filePath_local;
                         Log.e("lzf_activity_result", "视频路径" + filePath_local);
 //                        requestVideoWH(480,640);
+                        videoFrom = VIDEO_FROM_LOCAL;
                         videoView.setVideoURI(Uri.parse(filePath_local));
                         videoView.start();
-                        videoFrom = VIDEO_FROM_LOCAL;
+
                     } else {
                         Log.e("lzf_activity_result", "选择本地视频返回失败");
                     }
@@ -322,12 +347,14 @@ public class MainActivity extends AppCompatActivity implements
         Log.i(TAG, Environment.getExternalStorageDirectory().getPath() + "/video.mp4" + "     " + videoPath);
         Log.i(TAG, Environment.getExternalStorageDirectory() + "/video.mp4" + "     " + videoPath.substring(7, videoPath.length()));
 //        metadataRetriever.setDataSource(videoPath);
+
         if (videoFrom.equals(VIDEO_FROM_RECORD)) {
             metadataRetriever.setDataSource(videoPath.substring(7, videoPath.length()));
-        } else if (videoFrom.equals(VIDEO_FROM_LOCAL)) {
+        } else if (videoFrom.equals(VIDEO_FROM_LOCAL)||videoFrom.equals(VIDEO_FROM_CUT)) {
             metadataRetriever.setDataSource(videoPath);
         }
-        Log.e("lzf_duration", videoView.getDuration() + "   ");
+        String rotation = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
+        Log.e("lzf_duration", videoView.getDuration() + "   "+"  旋转角度  "+rotation);
         for (int i = 500 * 1000; i <= videoView.getDuration() * 1000; i += 1000 * 1000) {
             Bitmap bitmap = metadataRetriever.
                     getFrameAtTime(videoView.getCurrentPosition() * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
